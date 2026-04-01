@@ -81,6 +81,47 @@ def get_company(company_id):
 
     return jsonify(company.serialize()), 200
 
+@app.route('/company', methods=['POST'])
+def post_company():
+    body = request.get_json()
+    if "nombre" not in body:
+        return "Debes enviar el nombre", 400
+    if body["nombre"] == "":
+        return  {
+        "msg": "El nombre no puede ser vacio "
+    }, 400
+    print(request.get_json()["nombre"])
+    company = Empresa(**body)
+    db.session.add(company)
+    db.session.commit()
+
+    response_body = {
+        "msg": "se creo la empreas",
+        "company": company.serialize()
+    }
+
+
+    return jsonify(response_body), 200
+
+@app.route('/company/<int:company_id>', methods=['DELETE'])
+def delete_company(company_id):
+    # company = Empresa.query.filter_by(id = company_id).first()
+    # company = db.session.execute(select(Empresa).where(Empresa.id == company_id)).scalar_one_or_none()
+    company = db.session.get(Empresa, company_id)
+    if company is None:
+        return {
+        "msg": "erro eleminando la emrepsa",
+        "msd_error": f"no se encontro la emprea con el id {company_id}" 
+    }, 400
+    db.session.delete(company)
+    db.session.commit()
+    response_body = {
+        "msg": "se eliminio la empreas",
+        "company": company.serialize()
+    }
+
+    return jsonify(response_body), 200
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
